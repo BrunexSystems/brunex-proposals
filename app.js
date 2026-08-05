@@ -105,15 +105,26 @@ function renderProposal(payload) {
           <div class="option-controls no-print">
             ${[['care_months',content.fields.care_months,'months'],['product_entry_hours',content.fields.product_hours,`${money.format(config.rates.product_entry)} / hr`],['dev_hours',content.fields.development_hours,`${money.format(config.rates.development)} / hr`]].map(([name,label,suffix]) => `<label class="number-field"><span>${escapeHtml(label)}</span><div><input type="number" min="0" name="${name}" value="${number(inputs[name])}"><small>${escapeHtml(suffix)}</small></div></label>`).join('')}
           </div>
-          ${inputs.build_tier===config.stripe_eligible_tier?`<label class="check-row no-print"><input type="checkbox" name="add_stripe_setup" ${inputs.add_stripe_setup?'checked':''}><span>${escapeHtml(content.fields.stripe_setup)} ${money.format(config.rates.stripe_setup)}</span></label>`:''}
+          ${inputs.build_tier===config.stripe_eligible_tier?`<label class="check-row no-print"><input type="checkbox" name="add_stripe_setup" ${inputs.add_stripe_setup?'checked':''}><span>${escapeHtml(content.fields.stripe_setup)} ${money.format(config.rates.stripe_setup)}</span></label>`:`<p class="included-service-note"><b>Stripe payment-link setup is included</b> in the selected build package. Stripe processing charges remain a separate provider cost and can be estimated below.</p>`}
           <section class="third-party-summary-card" aria-labelledby="third-party-summary-title">
             <div class="third-party-summary-heading"><div><p class="section-kicker">ESTIMATED THIRD-PARTY SERVICES</p><h3 id="third-party-summary-title">Costs paid directly to outside providers</h3></div><strong>Not invoiced by Brunex</strong></div>
             <p class="third-party-summary-copy">Third-party services are disclosed for budgeting clarity. They are not marked up or invoiced by Brunex Systems LLC unless expressly stated. Actual provider pricing may change.</p>
+            <div class="third-party-assumptions no-print">
+              <div class="third-party-assumptions-heading"><strong>Adjust estimate assumptions</strong><span>Hosting initially follows the care-plan period, but it can be changed separately. Enter expected card activity to estimate Stripe processing.</span></div>
+              <div class="third-party-assumption-grid">
+                ${[
+                  ['hosting_per_month',content.fields.hosting_monthly,'$/month'],
+                  ['hosting_months',content.fields.hosting_months,'months'],
+                  ['transactions',content.fields.transactions,'transactions'],
+                  ['average_transaction',content.fields.average_transaction,'$ average'],
+                ].map(([name,label,suffix]) => `<label class="number-field"><span>${escapeHtml(label)}</span><div><input type="number" min="0" name="${name}" value="${number(inputs[name])}"><small>${escapeHtml(suffix)}</small></div></label>`).join('')}
+              </div>
+            </div>
             <div class="third-party-summary-row">
               <div><i>RECURRING ESTIMATE</i><strong>${escapeHtml(content.estimate.hosting)}</strong><span>${number(inputs.hosting_months)} months × ${money.format(inputs.hosting_per_month)}/month</span></div>
               <b>${money.format(result.hosting)}</b>
             </div>
-            <div class="third-party-summary-row"><div><i>USAGE-BASED ESTIMATE</i><strong>${escapeHtml(content.estimate.stripe_processing)}</strong><span>${result.stripe ? 'Estimated from the transaction assumptions in this proposal' : 'No transaction volume entered; not due at signing'}</span></div><b>${money.format(result.stripe)}</b></div>
+            <div class="third-party-summary-row"><div><i>USAGE-BASED ESTIMATE</i><strong>${escapeHtml(content.estimate.stripe_processing)}</strong><span>${result.stripe ? `${number(inputs.transactions)} transactions at ${money.format(inputs.average_transaction)} average; provider fee ${(config.rates.stripe_percentage*100).toFixed(1)}% + $${Number(config.rates.stripe_fixed).toFixed(2)} each` : `Enter transaction count and average amount above; provider fee ${(config.rates.stripe_percentage*100).toFixed(1)}% + $${Number(config.rates.stripe_fixed).toFixed(2)} each`}</span></div><b>${money.format(result.stripe)}</b></div>
           </section>
         </section>
         <aside class="estimate-panel">
@@ -137,7 +148,13 @@ function renderProposal(payload) {
     const { name, type, checked, value } = event.target;
     if (!name) return;
     if (name.startsWith('client_')) payload.proposalMeta[name] = value;
-    else inputs[name] = type === 'checkbox' ? checked : type === 'number' ? Math.max(0, number(value)) : value;
+    else {
+      const previousCareMonths = number(inputs.care_months);
+      const previousHostingMonths = number(inputs.hosting_months);
+      const nextValue = type === 'checkbox' ? checked : type === 'number' ? Math.max(0, number(value)) : value;
+      inputs[name] = nextValue;
+      if (name === 'care_months' && previousHostingMonths === previousCareMonths) inputs.hosting_months = nextValue;
+    }
     render();
   });
   proposal.addEventListener('click', (event) => { if (event.target.closest('[data-action="print"]')) window.print(); });
