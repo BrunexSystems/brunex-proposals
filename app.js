@@ -106,6 +106,16 @@ function renderProposal(payload) {
             ${[['care_months',content.fields.care_months,'months'],['product_entry_hours',content.fields.product_hours,`${money.format(config.rates.product_entry)} / hr`],['dev_hours',content.fields.development_hours,`${money.format(config.rates.development)} / hr`]].map(([name,label,suffix]) => `<label class="number-field"><span>${escapeHtml(label)}</span><div><input type="number" min="0" name="${name}" value="${number(inputs[name])}"><small>${escapeHtml(suffix)}</small></div></label>`).join('')}
           </div>
           ${inputs.build_tier===config.stripe_eligible_tier?`<label class="check-row no-print"><input type="checkbox" name="add_stripe_setup" ${inputs.add_stripe_setup?'checked':''}><span>${escapeHtml(content.fields.stripe_setup)} ${money.format(config.rates.stripe_setup)}</span></label>`:''}
+          <section class="third-party-summary-card" aria-labelledby="third-party-summary-title">
+            <p class="section-kicker">ESTIMATED THIRD-PARTY COSTS</p>
+            <h3 id="third-party-summary-title">Costs paid directly to outside providers</h3>
+            <p class="third-party-summary-copy">These planning estimates are shown separately and are not Brunex fees.</p>
+            <div class="third-party-summary-row">
+              <div><strong>${escapeHtml(content.estimate.hosting)}</strong><span>${number(inputs.hosting_months)} months × ${money.format(inputs.hosting_per_month)}/month</span></div>
+              <b>${money.format(result.hosting)}</b>
+            </div>
+            ${result.stripe ? `<div class="third-party-summary-row"><div><strong>${escapeHtml(content.estimate.stripe_processing)}</strong><span>Estimated from the transaction assumptions in this proposal</span></div><b>${money.format(result.stripe)}</b></div>` : ''}
+          </section>
         </section>
         <aside class="estimate-panel">
           <div class="section-heading light"><span>02</span><div><p>${escapeHtml(content.sections.estimate_eyebrow)}</p><h2>${escapeHtml(content.sections.estimate_title)}</h2></div></div>

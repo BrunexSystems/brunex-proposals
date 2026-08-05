@@ -117,6 +117,14 @@ legend { margin-bottom: 8px; color: var(--navy); font: 600 22px Georgia,serif; }
 .number-field small { position: absolute; top: 50%; right: 11px; transform: translateY(-50%); color: #82949d; font-size: 9px; }
 .check-row { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; color: var(--ink); font-size: 12px; }
 .check-row input { accent-color: var(--blue); }
+.third-party-summary-card { margin-top: 28px; padding: 22px; border: 1px solid #b8d2de; border-radius: 4px; background: #f2f8fa; }
+.third-party-summary-card h3 { margin: 0 0 7px; color: var(--navy); font: 500 20px Georgia,serif; }
+.third-party-summary-copy { margin: 0 0 16px; color: var(--muted); font-size: 10px; line-height: 1.55; }
+.third-party-summary-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 14px 0; border-top: 1px solid #cfdee5; }
+.third-party-summary-row div { display: grid; gap: 4px; }
+.third-party-summary-row strong { color: var(--navy); font-size: 11px; }
+.third-party-summary-row span { color: #6f8792; font-size: 10px; }
+.third-party-summary-row > b { flex: 0 0 auto; color: var(--navy); font: 600 23px Georgia,serif; }
 .total-card { margin: 12px 0 26px; padding: 25px; background: linear-gradient(135deg,#118dca,#0870aa); }
 .total-card span, .total-card small { display: block; }
 .total-card span { font-size: 11px; font-weight: 750; }
@@ -174,6 +182,7 @@ legend { margin-bottom: 8px; color: var(--navy); font: 600 22px Georgia,serif; }
   .workspace { display: block; }
   .config-panel { padding: 24px 0 16px; }
   .proposal-details, .scope-summary, .proposal-guide, .service-rates { margin-bottom: 20px; padding: 14px; break-inside: avoid; }
+  .third-party-summary-card { padding: 14px; break-inside: avoid; }
   .proposal-details-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
   .scope-grid { grid-template-columns: 1fr 1fr; gap: 9px 18px; }
   fieldset { margin-bottom: 19px; break-inside: avoid; }
