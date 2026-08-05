@@ -117,13 +117,17 @@ legend { margin-bottom: 8px; color: var(--navy); font: 600 22px Georgia,serif; }
 .number-field small { position: absolute; top: 50%; right: 11px; transform: translateY(-50%); color: #82949d; font-size: 9px; }
 .check-row { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; color: var(--ink); font-size: 12px; }
 .check-row input { accent-color: var(--blue); }
-.third-party-summary-card { margin-top: 28px; padding: 22px; border: 1px solid #b8d2de; border-radius: 4px; background: #f2f8fa; }
+.third-party-summary-card { margin-top: 28px; padding: 24px; border: 1px solid #9fc4d4; border-top: 5px solid var(--blue); border-radius: 4px; background: #f2f8fa; }
+.third-party-summary-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 22px; }
+.third-party-summary-heading .section-kicker { margin-top: 0; }
+.third-party-summary-heading > strong { padding: 7px 10px; border: 1px solid #8cb9cd; border-radius: 999px; color: var(--navy); background: #fff; font-size: 10px; white-space: nowrap; }
 .third-party-summary-card h3 { margin: 0 0 7px; color: var(--navy); font: 500 20px Georgia,serif; }
-.third-party-summary-copy { margin: 0 0 16px; color: var(--muted); font-size: 10px; line-height: 1.55; }
+.third-party-summary-copy { margin: 10px 0 16px; color: var(--muted); font-size: 12px; line-height: 1.6; }
 .third-party-summary-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 14px 0; border-top: 1px solid #cfdee5; }
 .third-party-summary-row div { display: grid; gap: 4px; }
-.third-party-summary-row strong { color: var(--navy); font-size: 11px; }
-.third-party-summary-row span { color: #6f8792; font-size: 10px; }
+.third-party-summary-row i { color: var(--blue); font-size: 9px; font-style: normal; font-weight: 850; letter-spacing: .1em; }
+.third-party-summary-row strong { color: var(--navy); font-size: 13px; }
+.third-party-summary-row span { color: #6f8792; font-size: 12px; }
 .third-party-summary-row > b { flex: 0 0 auto; color: var(--navy); font: 600 23px Georgia,serif; }
 .total-card { margin: 12px 0 26px; padding: 25px; background: linear-gradient(135deg,#118dca,#0870aa); }
 .total-card span, .total-card small { display: block; }
@@ -152,6 +156,25 @@ legend { margin-bottom: 8px; color: var(--navy); font: 600 22px Georgia,serif; }
 .signature-line i { border-bottom: 1px solid #81929b; }
 .signature-line span { margin-top: 7px; color: #546b78; font-size: 9px; }
 .acceptance-note { margin-top: 26px; color: #6d818c; font-size: 9px; }
+
+/* Readable laptop typography while retaining responsive grids and print layout. */
+.hero-copy { font-size: 16px; }
+.proposal-toolbar strong { font-size: 15px; }
+.proposal-toolbar span { font-size: 13px; }
+.detail-label, .section-kicker, .eyebrow { font-size: 11px; }
+.detail-value { font-size: 14px; }
+.scope-overview, .proposal-guide > span, .section-blurb { font-size: 13px; }
+.scope-grid h4 { font-size: 15px; }
+.scope-grid p, .scope-grid ul { font-size: 12px; }
+.tier-card > strong, .care-card > strong { font-size: 20px; }
+.tier-card > small, .care-card > small { font-size: 13px; }
+.feature-list li { font-size: 13px; }
+.card-topline, .card-price span, .care-price span, .card-details, .care-math { font-size: 11px; }
+.service-rate-grid span, .number-field span { font-size: 12px; }
+.service-rate-grid p, .service-note, .fine-print { font-size: 11px; }
+.price-row span, .price-row b { font-size: 14px; }
+.price-row span small { font-size: 11px; }
+.acceptance-copy { font-size: 14px; }
 @media (max-width: 960px) {
   .workspace { grid-template-columns: 1fr; }
   .estimate-panel { order: -1; }
@@ -168,6 +191,7 @@ legend { margin-bottom: 8px; color: var(--navy); font: 600 22px Georgia,serif; }
   .hero-stat { display: none; }
   .proposal-details-grid, .scope-grid, .service-rate-grid, .option-controls, .signature-grid { grid-template-columns: 1fr; }
   .care-grid { grid-template-columns: 1fr 1fr; }
+  .third-party-summary-heading { flex-direction: column; }
 }
 @media print {
   @page { size: letter; margin: .42in; }
