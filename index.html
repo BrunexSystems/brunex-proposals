@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <title>Secure Brunex Proposal</title>
+    <link rel="icon" href="brand/brunex-symbol.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="Brunex proposal">
+        <img src="brand/brunex-symbol.png" alt="" />
+        <span><strong>BRUNEX</strong><small>SYSTEMS LLC</small></span>
+      </a>
+      <div class="secure-badge">ENCRYPTED CLIENT PROPOSAL</div>
+    </header>
+
+    <main id="app">
+      <section id="unlock" class="unlock-shell" aria-labelledby="unlock-title">
+        <div class="unlock-card">
+          <img src="brand/brunex-symbol.png" alt="" />
+          <p>SECURE PROPOSAL</p>
+          <h1 id="unlock-title">Enter your proposal password</h1>
+          <span>Your proposal is encrypted. Use the password supplied separately by Brunex Systems LLC.</span>
+          <form id="unlock-form">
+            <label for="proposal-password">Proposal password</label>
+            <div class="password-row">
+              <input id="proposal-password" type="password" autocomplete="current-password" required autofocus />
+              <button id="toggle-password" type="button" aria-label="Show password">Show</button>
+            </div>
+            <button class="primary-button" type="submit">Open proposal</button>
+            <p id="unlock-error" class="error" role="alert"></p>
+          </form>
+          <small>The password is not sent to or stored by GitHub.</small>
+        </div>
+      </section>
+      <section id="proposal" hidden></section>
+    </main>
+
+    <noscript>This secure proposal requires JavaScript to decrypt and display.</noscript>
+    <script src="app.js" defer></script>
+  </body>
+</html>
