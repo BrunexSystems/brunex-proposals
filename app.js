@@ -61,12 +61,62 @@ function calculate(inputs, config) {
 
 const featureList = (features = []) => `<ul class="feature-list">${features.map((feature) => `<li>${escapeHtml(feature)}</li>`).join('')}</ul>`;
 const scopeBlock = (title, value, list = false) => `<div><h4>${title}</h4>${list ? `<ul>${String(value).split(/\r?\n/).filter(Boolean).map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>` : `<p>${escapeHtml(value)}</p>`}</div>`;
+const proposalSections = [
+  { id: 'proposal-overview', label: 'Overview' },
+  { id: 'project-scope', label: 'Scope' },
+  { id: 'build-options', label: 'Build' },
+  { id: 'additional-site-options', label: 'Additional Site' },
+  { id: 'care-plan-options', label: 'Care Plan' },
+  { id: 'additional-services', label: 'Services' },
+  { id: 'third-party-costs', label: 'Third-Party Costs' },
+  { id: 'client-approval', label: 'Approval' },
+];
 
 function renderProposal(payload) {
   const { config, content, scope, proposalMeta: meta } = payload;
   const inputs = { ...payload.inputs };
   const proposal = document.querySelector('#proposal');
+  let activeSection = proposalSections[0].id;
+  let scrollspyFrame = 0;
   document.title = `${meta.project || 'Proposal'} | Brunex Systems LLC`;
+
+  const preferredScrollBehavior = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  const centerActiveTab = (behavior = preferredScrollBehavior()) => {
+    const track = proposal.querySelector('.scrollspy-track');
+    const button = proposal.querySelector(`[data-scrollspy-target="${activeSection}"]`);
+    if (!track || !button || typeof track.scrollTo !== 'function') return;
+    const left = button.offsetLeft - ((track.clientWidth - button.offsetWidth) / 2);
+    track.scrollTo({ left: Math.max(0, left), behavior });
+  };
+  const showActiveSection = (nextId, center = true) => {
+    if (!nextId) return;
+    const changed = nextId !== activeSection;
+    activeSection = nextId;
+    proposal.querySelectorAll('[data-scrollspy-target]').forEach((button) => {
+      const active = button.dataset.scrollspyTarget === activeSection;
+      button.classList.toggle('active', active);
+      if (active) button.setAttribute('aria-current', 'location');
+      else button.removeAttribute('aria-current');
+    });
+    if (center && changed) centerActiveTab();
+  };
+  const updateScrollspy = () => {
+    scrollspyFrame = 0;
+    const nav = proposal.querySelector('.scrollspy-nav');
+    if (!nav) return;
+    const activationLine = nav.getBoundingClientRect().bottom + 24;
+    const atPageEnd = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+    let nextId = proposalSections[0].id;
+    if (atPageEnd) nextId = proposalSections[proposalSections.length - 1].id;
+    else proposalSections.forEach(({ id }) => {
+      const section = document.getElementById(id);
+      if (section && section.getBoundingClientRect().top <= activationLine) nextId = id;
+    });
+    showActiveSection(nextId);
+  };
+  const scheduleScrollspy = () => {
+    if (!scrollspyFrame) scrollspyFrame = window.requestAnimationFrame(updateScrollspy);
+  };
 
   const render = () => {
     const result = calculate(inputs, config);
@@ -82,31 +132,34 @@ function renderProposal(payload) {
         <div><p class="eyebrow">${escapeHtml(content.hero.eyebrow)}</p><h1>${escapeHtml(content.hero.title)}<br><em>${escapeHtml(content.hero.emphasis)}</em></h1><p class="hero-copy">${escapeHtml(content.hero.description)}</p></div>
         <div class="hero-stat"><span>${escapeHtml(content.fields.selected_package)}</span><strong>${number(result.build.products)}</strong><small>${escapeHtml(content.fields.products_included)}</small></div>
       </section>
+      <nav class="scrollspy-nav no-print" aria-label="Proposal sections"><div class="scrollspy-track">
+        ${proposalSections.map(({id,label}) => `<button type="button" data-scrollspy-target="${id}" class="${activeSection === id ? 'active' : ''}" ${activeSection === id ? 'aria-current="location"' : ''}>${label}</button>`).join('')}
+      </div></nav>
       <div class="workspace">
         <section class="config-panel">
           <div class="section-heading"><span>01</span><div><p>${escapeHtml(content.sections.configure_eyebrow)}</p><h2>${escapeHtml(content.sections.configure_title)}</h2></div></div>
-          <section class="proposal-details"><p class="section-kicker">CLIENT &amp; PROJECT</p><div class="proposal-details-grid">
+          <section class="proposal-details scrollspy-section" id="proposal-overview"><p class="section-kicker">CLIENT &amp; PROJECT</p><div class="proposal-details-grid">
             ${[['Prepared for',meta.prepared_for],['Company',meta.company],['Client email',meta.email],['Project',meta.project],['Proposal number',meta.proposal_number],['Proposal date',meta.proposal_date],['Valid through',meta.valid_until]].map(([label,value]) => `<div><span class="detail-label">${label}</span><strong class="detail-value">${escapeHtml(value || '—')}</strong></div>`).join('')}
           </div></section>
-          <section class="scope-summary"><p class="section-kicker">GENERAL SCOPE</p><h3>Project scope</h3><p class="scope-overview">${escapeHtml(scope.overview)}</p><div class="scope-grid">
+          <section class="scope-summary scrollspy-section" id="project-scope"><p class="section-kicker">GENERAL SCOPE</p><h3>Project scope</h3><p class="scope-overview">${escapeHtml(scope.overview)}</p><div class="scope-grid">
             ${scopeBlock('Objectives',scope.objectives)}${scopeBlock('General deliverables',scope.deliverables,true)}${scopeBlock('Timeline',scope.timeline)}${scopeBlock('Assumptions',scope.assumptions)}${scopeBlock('Exclusions',scope.exclusions)}
           </div></section>
           <section class="proposal-guide"><p class="section-kicker">HOW TO REVIEW YOUR OPTIONS</p><h3>${escapeHtml(content.guidance.title)}</h3><span>${escapeHtml(content.guidance.description)}</span></section>
-          <fieldset><legend>${escapeHtml(content.fields.build_tier)}</legend><p class="section-blurb">${escapeHtml(content.guidance.build)}</p><div class="tier-grid">
+          <fieldset class="scrollspy-section" id="build-options"><legend>${escapeHtml(content.fields.build_tier)}</legend><p class="section-blurb">${escapeHtml(content.guidance.build)}</p><div class="tier-grid">
             ${tiers.map(([name,tier]) => `<label class="tier-card ${inputs.build_tier === name ? 'selected' : ''}"><input type="radio" name="build_tier" value="${escapeHtml(name)}" ${inputs.build_tier === name ? 'checked' : ''}><div class="card-topline"><span>${number(tier.products)} PRODUCTS</span><i class="radio-dot"></i></div><strong>${escapeHtml(name)}</strong><small>${escapeHtml(tier.description)}</small>${featureList(tier.features)}<div class="card-price"><b>${money.format(tier.fee)}</b><span>fixed build fee</span></div><div class="card-details"><span><b>${money.format(tier.fee * config.rates.deposit_percentage)}</b> at signing</span><span><b>${number(tier.products)}</b> products included</span></div></label>`).join('')}
           </div></fieldset>
-          <fieldset class="additional-site"><label class="toggle-row"><input type="checkbox" name="additional_site" ${inputs.additional_site ? 'checked' : ''}><span><strong>${escapeHtml(content.fields.additional_site)}</strong><small>Apply a ${Math.round(config.rates.additional_site_discount * 100)}% additional-site build discount to the second build.</small></span></label>
+          <fieldset class="additional-site scrollspy-section" id="additional-site-options"><label class="toggle-row"><input type="checkbox" name="additional_site" ${inputs.additional_site ? 'checked' : ''}><span><strong>${escapeHtml(content.fields.additional_site)}</strong><small>Apply a ${Math.round(config.rates.additional_site_discount * 100)}% additional-site build discount to the second build.</small></span></label>
             ${inputs.additional_site ? `<div class="additional-options"><legend>${escapeHtml(content.fields.additional_site_tier)}</legend><div class="tier-grid">${tiers.map(([name,tier]) => { const fee=tier.fee*(1-config.rates.additional_site_discount); return `<label class="tier-card ${inputs.additional_site_tier===name?'selected':''}"><input type="radio" name="additional_site_tier" value="${escapeHtml(name)}" ${inputs.additional_site_tier===name?'checked':''}><div class="card-topline"><span>ADDITIONAL SITE</span><i class="radio-dot"></i></div><strong>${escapeHtml(name)}</strong><small>${escapeHtml(tier.description)}</small>${featureList(tier.features)}<div class="card-price"><b>${money.format(fee)}</b><span>discounted build fee</span></div><div class="card-details"><span><s>${money.format(tier.fee)}</s> list price</span><span><b>Save ${money.format(tier.fee-fee)}</b></span></div></label>`; }).join('')}</div></div>` : ''}
           </fieldset>
-          <fieldset><legend>${escapeHtml(content.fields.care_plan)}</legend><p class="section-blurb">${escapeHtml(content.guidance.care)}</p><div class="care-grid">
+          <fieldset class="scrollspy-section" id="care-plan-options"><legend>${escapeHtml(content.fields.care_plan)}</legend><p class="section-blurb">${escapeHtml(content.guidance.care)}</p><div class="care-grid">
             ${plans.map(([name,plan]) => `<label class="care-card ${inputs.care_plan===name?'selected':''}"><input type="radio" name="care_plan" value="${escapeHtml(name)}" ${inputs.care_plan===name?'checked':''}><div class="card-topline"><span>${name==='None'?'OPTIONAL':`${plan.hours} EDIT ${plan.hours===1?'HOUR':'HOURS'}`}</span><i class="radio-dot"></i></div><strong>${escapeHtml(name)}</strong><small>${escapeHtml(plan.description)}</small><div class="care-price"><b>${money.format(plan.fee)}</b><span>/ month</span></div><div class="care-math"><span><b>${number(plan.hours)}</b> edit ${number(plan.hours)===1?'hour':'hours'} / month</span><span><b>${careMonths} × ${money.format(plan.fee)}</b> = ${money.format(plan.fee*careMonths)}</span></div></label>`).join('')}
           </div></fieldset>
-          <section class="service-rates"><p class="section-kicker">ADDITIONAL SERVICES</p><h3>Hourly rates</h3><div class="service-rate-grid"><div><span>Product entry</span><strong>${money.format(config.rates.product_entry)}<small>/hour</small></strong><p>Catalog and product-data entry beyond the selected package allowance.</p></div><div><span>Design &amp; development</span><strong>${money.format(config.rates.development)}<small>/hour</small></strong><p>Ad-hoc technical, design, and development work outside the approved scope.</p></div></div><p class="service-note">Care-plan edit hours do not apply to bulk product-entry work.</p></section>
+          <section class="service-rates scrollspy-section" id="additional-services"><p class="section-kicker">ADDITIONAL SERVICES</p><h3>Hourly rates</h3><div class="service-rate-grid"><div><span>Product entry</span><strong>${money.format(config.rates.product_entry)}<small>/hour</small></strong><p>Catalog and product-data entry beyond the selected package allowance.</p></div><div><span>Design &amp; development</span><strong>${money.format(config.rates.development)}<small>/hour</small></strong><p>Ad-hoc technical, design, and development work outside the approved scope.</p></div></div><p class="service-note">Care-plan edit hours do not apply to bulk product-entry work.</p></section>
           <div class="option-controls no-print">
             ${[['care_months',content.fields.care_months,'months'],['product_entry_hours',content.fields.product_hours,`${money.format(config.rates.product_entry)} / hr`],['dev_hours',content.fields.development_hours,`${money.format(config.rates.development)} / hr`]].map(([name,label,suffix]) => `<label class="number-field"><span>${escapeHtml(label)}</span><div><input type="number" min="0" name="${name}" value="${number(inputs[name])}"><small>${escapeHtml(suffix)}</small></div></label>`).join('')}
           </div>
           ${inputs.build_tier===config.stripe_eligible_tier?`<label class="check-row no-print"><input type="checkbox" name="add_stripe_setup" ${inputs.add_stripe_setup?'checked':''}><span>${escapeHtml(content.fields.stripe_setup)} ${money.format(config.rates.stripe_setup)}</span></label>`:`<p class="included-service-note"><b>Stripe payment-link setup is included</b> in the selected build package. Stripe processing charges remain a separate provider cost and can be estimated below.</p>`}
-          <section class="third-party-summary-card" aria-labelledby="third-party-summary-title">
+          <section class="third-party-summary-card scrollspy-section" id="third-party-costs" aria-labelledby="third-party-summary-title">
             <div class="third-party-summary-heading"><div><p class="section-kicker">ESTIMATED THIRD-PARTY SERVICES</p><h3 id="third-party-summary-title">Costs paid directly to outside providers</h3></div><strong>Not invoiced by Brunex</strong></div>
             <p class="third-party-summary-copy">Third-party services are disclosed for budgeting clarity. They are not marked up or invoiced by Brunex Systems LLC unless expressly stated. Actual provider pricing may change.</p>
             <div class="third-party-assumptions no-print">
@@ -144,7 +197,11 @@ function renderProposal(payload) {
           <p class="fine-print">Stripe estimate uses ${(config.rates.stripe_percentage*100).toFixed(1)}% + ${Number(config.rates.stripe_fixed).toFixed(2)} per transaction. ${escapeHtml(content.notes.stripe)}</p>
         </aside>
       </div>
-      <section class="acceptance"><p class="section-kicker">CLIENT ACCEPTANCE</p><h2>Approval to proceed</h2><p class="acceptance-copy">By signing below, the client accepts the selected scope and investment shown in this proposal and authorizes Brunex Systems LLC to begin work. Any material change to scope, timing, or third-party costs will be documented separately for approval.</p><div class="signature-grid"><label class="signature-field"><label>Authorized client name</label><input name="client_signer" value="${escapeHtml(meta.client_signer||'')}"></label><label class="signature-field"><label>Title</label><input name="client_title" value="${escapeHtml(meta.client_title||'')}"></label><div class="signature-line"><i></i><span>Authorized signature</span></div><label class="signature-field"><label>Date</label><input type="date" name="client_signed_date" value="${escapeHtml(meta.client_signed_date||'')}"></label></div><p class="acceptance-note">This proposal is valid through ${escapeHtml(meta.valid_until||'the date shown above')}.</p></section>`;
+      <section class="acceptance scrollspy-section" id="client-approval"><p class="section-kicker">CLIENT ACCEPTANCE</p><h2>Approval to proceed</h2><p class="acceptance-copy">By signing below, the client accepts the selected scope and investment shown in this proposal and authorizes Brunex Systems LLC to begin work. Any material change to scope, timing, or third-party costs will be documented separately for approval.</p><div class="signature-grid"><label class="signature-field"><label>Authorized client name</label><input name="client_signer" value="${escapeHtml(meta.client_signer||'')}"></label><label class="signature-field"><label>Title</label><input name="client_title" value="${escapeHtml(meta.client_title||'')}"></label><div class="signature-line"><i></i><span>Authorized signature</span></div><label class="signature-field"><label>Date</label><input type="date" name="client_signed_date" value="${escapeHtml(meta.client_signed_date||'')}"></label></div><p class="acceptance-note">This proposal is valid through ${escapeHtml(meta.valid_until||'the date shown above')}.</p></section>`;
+    window.requestAnimationFrame(() => {
+      centerActiveTab('auto');
+      scheduleScrollspy();
+    });
   };
 
   proposal.addEventListener('change', (event) => {
@@ -160,8 +217,20 @@ function renderProposal(payload) {
     }
     render();
   });
-  proposal.addEventListener('click', (event) => { if (event.target.closest('[data-action="print"]')) window.print(); });
+  proposal.addEventListener('click', (event) => {
+    if (event.target.closest('[data-action="print"]')) window.print();
+    const tab = event.target.closest('[data-scrollspy-target]');
+    if (!tab) return;
+    const targetId = tab.dataset.scrollspyTarget;
+    const section = document.getElementById(targetId);
+    if (!section) return;
+    showActiveSection(targetId);
+    section.scrollIntoView({ behavior: preferredScrollBehavior(), block: 'start' });
+  });
+  window.addEventListener('scroll', scheduleScrollspy, { passive: true });
+  window.addEventListener('resize', scheduleScrollspy);
   render();
+  scheduleScrollspy();
 }
 
 const unlockForm = document.querySelector('#unlock-form');
