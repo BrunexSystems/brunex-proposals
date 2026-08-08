@@ -100,23 +100,8 @@ function renderProposal(payload) {
     });
     if (center && changed) centerActiveTab();
   };
-  const updateEstimateMode = () => {
-    const panel = proposal.querySelector('.estimate-panel');
-    const summary = panel?.querySelector('.estimate-sticky-summary');
-    if (!panel || !summary) return;
-    const summaryStyle = window.getComputedStyle(summary);
-    if (summaryStyle.position !== 'sticky') {
-      summary.classList.remove('is-compact');
-      return;
-    }
-    const panelStyle = window.getComputedStyle(panel);
-    const naturalTop = panel.getBoundingClientRect().top + parseFloat(panelStyle.paddingTop || '0');
-    const stickyTop = parseFloat(summaryStyle.top || '0');
-    summary.classList.toggle('is-compact', naturalTop <= stickyTop + 1);
-  };
   const updateScrollspy = () => {
     scrollspyFrame = 0;
-    updateEstimateMode();
     const nav = proposal.querySelector('.scrollspy-nav');
     if (!nav) return;
     const activationLine = nav.getBoundingClientRect().bottom + 24;
@@ -196,6 +181,7 @@ function renderProposal(payload) {
           </section>
         </section>
         <aside class="estimate-panel">
+          <div class="estimate-panel-inner">
           <div class="estimate-sticky-summary">
             <div class="section-heading light"><span>02</span><div><p>${escapeHtml(content.sections.estimate_eyebrow)}</p><h2>${escapeHtml(content.sections.estimate_title)}</h2></div></div>
             <div class="total-card"><span>${escapeHtml(content.estimate.brunex_fees)}</span><strong>${money.format(result.brunexTotal)}</strong><small>${escapeHtml(content.estimate.brunex_note)}</small></div>
@@ -210,7 +196,13 @@ function renderProposal(payload) {
           </div>
           <div class="third-party"><p>${escapeHtml(content.estimate.third_party_heading)}</p><div class="price-row"><span>${escapeHtml(content.estimate.hosting)}<small>${number(inputs.hosting_months)} months × ${money.format(inputs.hosting_per_month)}/month</small></span><b>${money.format(result.hosting)}</b></div><div class="price-row"><span>${escapeHtml(content.estimate.stripe_processing)}</span><b>${money.format(result.stripe)}</b></div></div>
           <p class="fine-print">Stripe estimate uses ${(config.rates.stripe_percentage*100).toFixed(1)}% + ${Number(config.rates.stripe_fixed).toFixed(2)} per transaction. ${escapeHtml(content.notes.stripe)}</p>
+          </div>
         </aside>
+      </div>
+      <div class="mobile-cost-float no-print" aria-label="Live proposal totals">
+        <div><span>Brunex fees</span><strong>${money.format(result.brunexTotal)}</strong></div>
+        <div><span>Third-party estimate</span><strong>${money.format(result.hosting + result.stripe)}</strong></div>
+        <div class="mobile-cost-total"><span>Estimated total</span><strong>${money.format(result.allIn)}</strong></div>
       </div>
       <section class="acceptance scrollspy-section" id="client-approval"><p class="section-kicker">CLIENT ACCEPTANCE</p><h2>Approval to proceed</h2><p class="acceptance-copy">By signing below, the client accepts the selected scope and investment shown in this proposal and authorizes Brunex Systems LLC to begin work. Any material change to scope, timing, or third-party costs will be documented separately for approval.</p><div class="signature-grid"><label class="signature-field"><label>Authorized client name</label><input name="client_signer" value="${escapeHtml(meta.client_signer||'')}"></label><label class="signature-field"><label>Title</label><input name="client_title" value="${escapeHtml(meta.client_title||'')}"></label><div class="signature-line"><i></i><span>Authorized signature</span></div><label class="signature-field"><label>Date</label><input type="date" name="client_signed_date" value="${escapeHtml(meta.client_signed_date||'')}"></label></div><p class="acceptance-note">This proposal is valid through ${escapeHtml(meta.valid_until||'the date shown above')}.</p></section>`;
     window.requestAnimationFrame(() => {
