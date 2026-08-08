@@ -100,8 +100,23 @@ function renderProposal(payload) {
     });
     if (center && changed) centerActiveTab();
   };
+  const updateEstimateMode = () => {
+    const panel = proposal.querySelector('.estimate-panel');
+    const summary = panel?.querySelector('.estimate-sticky-summary');
+    if (!panel || !summary) return;
+    const summaryStyle = window.getComputedStyle(summary);
+    if (summaryStyle.position !== 'sticky') {
+      summary.classList.remove('is-compact');
+      return;
+    }
+    const panelStyle = window.getComputedStyle(panel);
+    const naturalTop = panel.getBoundingClientRect().top + parseFloat(panelStyle.paddingTop || '0');
+    const stickyTop = parseFloat(summaryStyle.top || '0');
+    summary.classList.toggle('is-compact', naturalTop <= stickyTop + 1);
+  };
   const updateScrollspy = () => {
     scrollspyFrame = 0;
+    updateEstimateMode();
     const nav = proposal.querySelector('.scrollspy-nav');
     if (!nav) return;
     const activationLine = nav.getBoundingClientRect().bottom + 24;
